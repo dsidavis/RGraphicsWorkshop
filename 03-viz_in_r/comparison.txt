@@ -1,0 +1,24 @@
+base
+> conceptual model:  draw elements on a canvas
++ one-liners
++ straightforward to extend to custom classes
++ no* dependencies
++ very flexible for ad hoc plotting needs or "non-standard" plots
+    + eg, barycentric coordinates; scatterplot w/ marginal densities
+- plots as side effects
+- fill color is `bg`; point shape is `pch`
+- "ugly defaults"
+
+ggplot
++ conceptual model: grammar of graphics
++ facets
++ plots are first-class objects
+> "pretty defaults"
+    + better than base
+    - low contrast
+    - not color blind-friendly
+    - grey background??!
++ themes and palettes
+- only* for data frames
+- huge gap between basic use and writing extensions
+
