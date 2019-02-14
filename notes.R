@@ -1,16 +1,92 @@
 #' ---
 #' title: Visualization in R
 #' author: "Dan Hicks, <djhicks@ucdavis.edu>"
+#' toc: true
 #' ---
 
+#' **Welcome!**
+#' 
+#' To get these notes and the datasets we'll be using, you'll need to clone or download this repository:  <https://github.com/dsidavis/RGraphicsWorkshop>
+#' 
+#' You'll also need the ggplot2 library. 
 library(ggplot2)
+## NB Some other libraries are loaded below. These are all optional.  It's good practice to put your dependencies at the top of your code.  
 
 data_dir = 'data/'
 plots_dir = 'plots/'
 
+#' # Base Graphics #
+#' 
+#' - R comes with a standard set of visualization tools, called *base graphics*.[^base]  
+#' - Base graphics' approach to visualization is often called an "artist's palette" model
+#'     - A set of low-level tools (draw points, lines, polygons, etc.)
+#'     - Define a canvas first, then use these tools to paint elements on the canvas
+#' - Advantages of base graphics
+#'     - One-liners:  `plot(some_object)` often does something useful
+#'         - Try it with dataframes, principle components results, regression models, ...
+#'     - Straightforward to extend to custom classes
+#'     - No$^*$ dependencies; works on any$^*$ R installation
+#'     - Very flexible for ad hoc or unusual visualizations
+#'         - triplots/barycentric coordinates
+#'         - scatterplots with marginal densities
+#'         - heatmaps with marginal dendrograms
+#' - Disadvantages of base graphics
+#'     - Parameters aren't perspicuous
+#'         - fill color is `bg`
+#'         - point shape is `pch`
+#'         - point size is `cex`
+#'     - "Ugly defaults"
+#'     - Plots as [side effects](https://en.wikipedia.org/wiki/Side_effect_(computer_science))
+#' 
+#' [^base]: Strictly speaking, `base` is the name of a particular package; "base graphics" aren't included in this package, but instead are in the `graphics` package.  So "base graphics" is strictly incorrect.  But "graphics graphics" sounds silly, and the `graphics` package is loaded automatically when you launch R, so everyone just calls it "base graphics."  
+#' 
+
+#' # Grammar of Graphics #
+#' 
+#' - The *grammar of graphics* is a model for visualization developed by Leland Wilkinson
+#'     - [*The Grammar of Graphics*](https://link.springer.com/book/10.1007%2F978-1-4757-3100-2)
+#'     - *Graphs are mappings*:  features of data (variables) are mapped to features of visual objects
+#'     - These mappings are called *aesthetics*
+#'         - Mapping height to x-coordinate
+#'         - Mapping frequency to point size
+#'         - Mapping gender to color
+#' - `ggplot2` is an implementation of the grammar of graphics in R developed by Hadley Wickham
+#'     - ["A Layered Grammar of Graphics"](https://www.tandfonline.com/doi/abs/10.1198/jcgs.2009.07098)
+#' - Advantages of `ggplot2`
+#'     - Conceptual model
+#'     - Facets
+#'     - Themes and palettes
+#'     - Plots are [first-class objects](https://en.wikipedia.org/wiki/First-class_citizen)
+#'     - "Pretty defaults"
+#' - Disadvantages of `ggplot2`
+#'     - Only$^*$ for data frames in [*long format*](https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html)
+#'     - Huge gap between basic use and developing extensions
+#'     
+
+#' # Plot 0:  Quick intro to ggplot #
+## Plot 0 ----
+library(datasauRus)
+## This is a fun collection of datasets:  They look totally different when they're plotted, but have the same mean, standard deviation, and Pearson correlation coefficient.  
+
+str(datasaurus_dozen_wide, give.attr = FALSE)
+str(datasaurus_dozen, give.attr = FALSE)
+
+ggplot(datasaurus_dozen_wide, 
+       aes(dino_x, dino_y)) +
+    geom_point()
+
+ggplot(datasaurus_dozen, 
+       aes(x, y)) +
+    geom_point() +
+    facet_wrap(~ dataset)
+
+
 #' # Plot 1: Dumbbell plot #
 ## Plot 1 ----
+## Derived from figure 2: <https://www.frontiersin.org/articles/10.3389/frma.2018.00024/full>
 counts_df = readRDS(paste0(data_dir, 'paper_counts.Rds'))
+
+counts_df
 
 ggplot(counts_df, aes(subject_area, full)) + 
     ## geoms
@@ -36,79 +112,101 @@ ggplot(counts_df, aes(subject_area, full)) +
           legend.background = element_rect(fill = 'white'))
 ggsave(paste0(plots_dir, 'plot_1.png'), height = 7, width = 7)
 
+#' ## Discussion ##
+#' 1. What design decisions are being used to highlight the message of this plot?  
+#' 2. What alternative designs could be used to communicate the same message?  
+#'     - Are any of these alternative designs better than the one I used?  
+#'     - Try implementing your idea in ggplot
+#' 3. How does this plot omit, distort, or mislead?  
+#' 
 
-#' # Plot 2: High-density scatterplots, 5 ways #
+
+#' # Plot 2: High-density scatterplots #
 ## Plot 2 ----
+## Code to construct this dataset is in `climate_data.R`
 temp_df = readRDS(paste0(data_dir, 'temp.Rds'))
+
+str(temp_df)
 
 ggplot(temp_df, aes(temp_max, temp_delta)) +
     ## geoms
     # geom_point() +
     # geom_count() +
     # geom_bin2d() +
-    geom_hex(aes(color = ..count..)) +
+    # geom_hex(aes(color = ..count..)) +
     # geom_density2d(size = 1) +
+    # stat_density2d(contour = FALSE, geom = 'raster', aes(fill = ..density..), show.legend = FALSE) +
+    stat_density2d(geom = 'polygon', aes(fill = ..level..), show.legend = FALSE) +
     ## facets
     facet_wrap(~ name) +
+    ## Annotations are repeated within each facet
+    # annotate(geom = 'label', x = 200, y = 5, label = Sys.time()) +
     ## scales
     xlab('Daily maximum temperature (ºC)') +
     ylab('Daily temperature difference (ºC)') +
-    scale_color_viridis_c() +
-    scale_fill_viridis_c() +
+    scale_color_viridis_c(option = 'A') +
+    scale_fill_viridis_c(option = 'A') +
     ## themes
     theme_bw() +
-    ggtitle('Maximum temperature vs. temperature difference', 
+    ggtitle('Temperature difference is associated with maximum daily temperature', 
             subtitle = Sys.time())
 ggsave(paste0(plots_dir, 'plot_2.png'), height = 7, width = 7)
 
+#' ## Discussion ##
+#' 1. What are the strengths and weaknesses of each different option?  
+#' 
 
-#' # Plot 3:  Time series + model predictions, 3 ways #
+
+#' # Plot 3:  Time series + model predictions #
 ## Plot 3 ----
+## Hack to get month labels on day-as-year
+## <https://stackoverflow.com/a/39861306/3187973>
+temp_df$day.date = as.Date(temp_df$day, '2009-01-01')
+
+## Model **for Sacramento alone**
 model = lm(data = temp_df, temp_delta ~ day + I(day^2), 
            subset = name == 'Sacramento')
 
 predictions = predict(model, interval = 'confidence', level = .95)
 predictions = as.data.frame(predictions)
 predictions$day = model$model$day
+predictions$day.date = as.Date(predictions$day, '2009-01-01')
 
-ggplot(temp_df, aes(day, temp_delta)) +
+ggplot(temp_df, aes(day.date, temp_delta)) +
     ## geoms
-    geom_point(aes(color = month), show.legend = FALSE) +
-    ## Method 1
-    ## - Separate smooth for each panel
-    ## - No access to model
-    # geom_smooth(method = lm, formula = y ~ x + I(x^2),
-    #             color = 'blue', size = 1) +
-    ## Method 2
-    ## - No confidence intervals
-    # stat_function(fun = function (day) {
-    #     newdata = data.frame(day)
-    #     return(predict(model, newdata))},
-    #     color = 'blue', size = 1) +
-    ## Method 3
-    ## - Requires some external wrangling
+    geom_path(aes(color = month, group = year), alpha = .3, show.legend = FALSE) +
+    ## Separate models for each panel
+    geom_smooth(method = lm, formula = y ~ x + I(x^2),
+                color = 'red', size = 1) +
+    ## Sacramento-only model
+    ## Use the smooth geom to get curve + ribbon
+    ## But set `stat = 'identity'` because we don't want to fit a (new) model
     geom_smooth(data = predictions, stat = 'identity',
-            aes(y = fit, ymax = upr, ymin = lwr),
-            color = 'blue', fill = 'blue') +
+                aes(y = fit, ymax = upr, ymin = lwr),
+                color = 'blue', fill = 'blue', size = 1) +
     ## facets
-    ## Faceting repeats the annotation
-    # annotate(geom = 'label', x = 200, y = 5, label = Sys.time()) +
     facet_wrap(~ name) +
     ## scales
-    xlab('Day of year') +
+    scale_x_date(name = 'Month', date_breaks = '3 month', date_labels = '%b') +  
     scale_y_continuous(name = 'Daily temperature difference (max - min)', 
                        labels = scales::math_format(expr = .x*degree*C)) +
-    scale_color_viridis_d(limits = month.name, 
+    scale_color_viridis_d(limits = month.name,
                           option = 'E',
                           direction = -1) +
+    # coord_polar() +
     ## themes
     theme_bw() +
-    ggtitle('Seasonal and regional variation in daily temperature difference', 
+    ggtitle('Sacramento has smaller temperature differences than other sites', 
             subtitle = Sys.time())
 
 ## Note effect of aspect ratios on perception
 ggsave(paste0(plots_dir, 'plot_3.png'), height = 7, width = 7)
 ggsave(paste0(plots_dir, 'plot_3a.png'), height = 7, width = 12)
+
+#' ## Discussion ##
+#' 1. What are the tradeoffs involved in using models internal vs. external to the plot?  
+#' 2. Aspect ratios change our perception of the plot.  Does this mean one aspect ratio is misleading?  
+#' 
 
 
 #' # Plot 4:  Visualizing spatial data in R #
@@ -123,6 +221,8 @@ if (packageVersion('ggplot2') < package_version('3.0.0')) {
 
 stations = readRDS(paste0(data_dir, 'stations.Rds'))
 stations.utm = readRDS(paste0(data_dir, 'stations.utm.Rds'))
+
+stations
 
 #' ## `ggmap` approach ##
 library(ggmap)
