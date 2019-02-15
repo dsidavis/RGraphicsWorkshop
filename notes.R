@@ -1,14 +1,16 @@
 #' ---
 #' title: Visualization in R
 #' author: "Dan Hicks, <djhicks@ucdavis.edu>"
-#' toc: true
+#' output:
+#'   html_document:
+#'     toc: true
 #' ---
 
 #' **Welcome!**
 #' 
 #' To get these notes and the datasets we'll be using, you'll need to clone or download this repository:  <https://github.com/dsidavis/RGraphicsWorkshop>
 #' 
-#' You'll also need the ggplot2 library. 
+#' You'll also need the `ggplot2` library. 
 library(ggplot2)
 ## NB Some other libraries are loaded below. These are all optional.  It's good practice to put your dependencies at the top of your code.  
 
@@ -19,17 +21,22 @@ plots_dir = 'plots/'
 #' 
 #' - R comes with a standard set of visualization tools, called *base graphics*.[^base]  
 #' - Base graphics' approach to visualization is often called an "artist's palette" model
-#'     - A set of low-level tools (draw points, lines, polygons, etc.)
+#'     - A set of low-level tools 
+#'         - `points()`, `lines()`, `polygon()`
+#'         - `abline()`, `curve()`
 #'     - Define a canvas first, then use these tools to paint elements on the canvas
 #' - Advantages of base graphics
-#'     - One-liners:  `plot(some_object)` often does something useful
-#'         - Try it with dataframes, principle components results, regression models, ...
+#'     - One-liners
+#'         - `plot(some_object)` often does something useful
+#'             - Try it with dataframes, regression models, principal components results, hierarchical clusterings, igraph networks, ...
+#'         - `hist()`, `pairs()`, `barplot()`, `boxplot()`, `pie()`(!)
 #'     - Straightforward to extend to custom classes
 #'     - No$^*$ dependencies; works on any$^*$ R installation
-#'     - Very flexible for ad hoc or unusual visualizations
+#'     - Very flexible for unusual visualizations or combinations of plots
 #'         - triplots/barycentric coordinates
 #'         - scatterplots with marginal densities
 #'         - heatmaps with marginal dendrograms
+#'         - map with inset plots of local data
 #' - Disadvantages of base graphics
 #'     - Parameters aren't perspicuous
 #'         - fill color is `bg`
