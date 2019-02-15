@@ -88,9 +88,9 @@ counts_df = readRDS(paste0(data_dir, 'paper_counts.Rds'))
 
 counts_df
 
-ggplot(counts_df, aes(subject_area, full)) + 
+ggplot(counts_df, aes(subject_area)) + 
     ## geoms
-    geom_point(aes(color = 'Full'), size = 3) +
+    geom_point(aes(y = full, color = 'Full'), size = 3) +
     geom_point(aes(y = sample, color = 'Sample'), size = 3) +
     geom_segment(aes(x = subject_area, xend = subject_area, 
                      y = full, yend = sample), 
@@ -204,7 +204,7 @@ ggsave(paste0(plots_dir, 'plot_3.png'), height = 7, width = 7)
 ggsave(paste0(plots_dir, 'plot_3a.png'), height = 7, width = 12)
 
 #' ## Discussion ##
-#' 1. What are the tradeoffs involved in using models internal vs. external to the plot?  
+#' 1. What are the dangers of using models internal to the plot?  
 #' 2. Aspect ratios change our perception of the plot.  Does this mean one aspect ratio is misleading?  
 #' 
 
